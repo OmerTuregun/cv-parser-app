@@ -1,36 +1,109 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+﻿# CV Parser App
 
-## Getting Started
+AI destekli CV analiz ve profil oluşturma uygulaması. CV'nizi yükleyin, yapay zeka otomatik olarak bilgilerinizi çıkarsın.
 
-First, run the development server:
+## Özellikler
+
+- PDF ve DOCX format desteği
+- Yerel AI modeli (Ollama + Gemma3) — verileriniz dışarı çıkmaz
+- Multi-step wizard ile kolay profil oluşturma
+- Türkçe ve İngilizce CV desteği
+
+## Gereksinimler
+
+- Node.js 20+
+- Ollama (https://ollama.com/download/windows)
+- Docker Desktop (opsiyonel)
+
+## Kurulum
+
+### 1. Repoyu klonla
+
+```bash
+git clone https://github.com/OmerTuregun/cv-parser-app.git
+cd cv-parser-app
+```
+
+### 2. Bağımlılıkları yükle
+
+```bash
+npm install
+```
+
+### 3. Environment dosyasını oluştur
+
+```bash
+cp .env.example .env.local
+```
+
+Windows (PowerShell veya CMD):
+
+```powershell
+copy .env.example .env.local
+```
+
+### 4. Ollama kurulumu
+
+```bash
+ollama pull gemma3:12b
+ollama serve
+```
+
+### 5. Uygulamayı başlat
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Uygulama: http://localhost:3010
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Docker ile Çalıştırma
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Production
 
-## Learn More
+```bash
+docker compose up -d
+```
 
-To learn more about Next.js, take a look at the following resources:
+```powershell
+.\scripts\ollama-setup.ps1
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Uygulama: http://localhost:3010
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Development (hot reload)
 
-## Deploy on Vercel
+```bash
+docker compose -f docker-compose.dev.yml up
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```powershell
+.\scripts\ollama-setup.ps1 -Dev
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Dev ortamında Ollama host portu **11435**'tir (yerel `ollama serve` genelde **11434** kullanır; böylece port çakışması olmaz). Uygulama konteyneri Ollama'ya Docker ağı üzerinden `http://ollama:11434` ile bağlanır.
+
+Yerel Ollama zaten 11434'te çalışıyorsa dev compose'u olduğu gibi kullanın; production compose (`docker-compose.yml`) host **11434** eşler — çakışma varsa yerel Ollama'yı durdurun veya compose dosyasında portu `11435:11434` olarak değiştirin.
+
+Kısmen oluşturulmuş konteynerler varsa:
+
+```bash
+docker compose -f docker-compose.dev.yml down
+docker rm -f cv-parser-ollama-dev cv-parser-app-dev
+```
+
+| Servis | Port (host) | URL |
+|--------|-------------|-----|
+| Next.js | 3010 | http://localhost:3010 |
+| Ollama (production) | 11434 | http://localhost:11434 |
+| Ollama (dev compose) | 11435 | http://localhost:11435 |
+
+### Durdurma
+
+```bash
+docker compose down
+```
+
+## Teknolojiler
+
+- Next.js 14 (App Router), TypeScript, Tailwind CSS + shadcn/ui, Zustand, Ollama (Gemma3:12b), Docker

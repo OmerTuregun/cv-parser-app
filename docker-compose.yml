@@ -1,0 +1,44 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cv-parser-app
+    ports:
+      - "3010:3010"
+    environment:
+      - NODE_ENV=production
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_MODEL=gemma3:12b
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - cv-network
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: cv-parser-ollama
+    ports:
+      - "11434:11434"  # conflicts with host Ollama on 11434; stop local Ollama or remap (e.g. 11435:11434)
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - cv-network
+
+volumes:
+  ollama_data:
+    name: cv-parser-ollama-data
+
+networks:
+  cv-network:
+    name: cv-parser-network
+    driver: bridge

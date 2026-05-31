@@ -1,0 +1,47 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: cv-parser-app-dev
+    command: npx next dev -p 3010 -H 0.0.0.0
+    ports:
+      - "3010:3010"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_MODEL=gemma3:12b
+    depends_on:
+      ollama:
+        condition: service_healthy
+    networks:
+      - cv-network-dev
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: cv-parser-ollama-dev
+    ports:
+      - "11435:11434"  # host 11435 avoids conflict with local Ollama on 11434
+    volumes:
+      - ollama_data_dev:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - cv-network-dev
+
+volumes:
+  ollama_data_dev:
+    name: cv-parser-ollama-data-dev
+
+networks:
+  cv-network-dev:
+    name: cv-parser-network-dev
+    driver: bridge
